@@ -1,29 +1,21 @@
 class CalendarsController < ApplicationController
 
-  # １週間のカレンダーと予定が表示されるページ
   def index
-    getWeek
-    @calendar = Calendar.new
     @plan = Plan.new
+    get_week
   end
 
-  # 予定の保存
   def create
-    binding.pry
-    calendar = Calendar.new(calendar_params)
-    plan = Plan.new(plan_params)
+    Plan.create(plan_params)
     redirect_to action: :index
-  end
+end
 
   private
 
-  def calendar_params
-    params.require(:calendars).permit(:date, :plan)
+  def plan_params
+    params.require(:plan).permit(:date, :plan)
   end
 
-  def plan_params
-    params.require(:calendars).permit(:date, :plan)
-  end
 
   def get_week
     wdays = ['(日)','(月)','(火)','(水)','(木)','(金)','(土)']
@@ -35,18 +27,17 @@ class CalendarsController < ApplicationController
     @week_days = []
 
     plans = Plan.where(date: @todays_date..@todays_date + 6)
-
+    
     7.times do |x|
       today_plans = []
       plans.each do |plan|
         today_plans.push(plan.plan) if plan.date == @todays_date + x
       end
-      days = { 
-        :month => (@todays_date + x).month, 
-        :date => (@todays_date+x).day, 
-        :day_of_week => wdays[(@todays_date + x).wday],
-        :plans => today_plans
-      }
+
+      wday_num = (@todays_date + x).wday
+      wday_num = (wday_num + 7) % 7
+      days = {:month => (@todays_date + x).month, :date => (@todays_date+x).day, :day_of_week => wdays[(@todays_date + x).wday], 
+      :plans => today_plans}
       @week_days.push(days)
     end
 
